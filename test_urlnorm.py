@@ -52,6 +52,10 @@ def pytest_generate_tests(metafunc):
             # python 2.5 urlparse doesn't handle unknown protocols, so skipping this for now
             #"itms://itunes.apple.com/us/app/touch-pets-cats/id379475816?mt=8#23161525,,1293732683083,260430,tw" : "itms://itunes.apple.com/us/app/touch-pets-cats/id379475816?mt=8#23161525,,1293732683083,260430,tw", #can handle itms://
 
+            #'http://example.com/../foo' should normalize to 'http://example.com/foo'
+            "http://example.com/../foo": "http://example.com/foo",
+            "http://example.com//foo/../../bar": "http://example.com/bar",
+            "http://example.com/../foo/../bar/../baz": "http://example.com/baz",
         }
         for bad, good in tests.items():
             metafunc.addcall(funcargs=dict(bad=bad, good=good))
@@ -83,15 +87,15 @@ def pytest_generate_tests(metafunc):
             '/foo/bar/../..':                '/',
             '/foo/bar/../../':               '/',
             '/foo/bar/../../baz':            '/baz',
-            '/foo/bar/../../../baz':         '/../baz',
+            '/foo/bar/../../../baz':         '/baz',
             '/foo/bar/../../../../baz':      '/baz',
             '/./foo':                        '/foo',
-            '/../foo':                       '/../foo',
+            '/../foo':                       '/foo',
             '/foo.':                         '/foo.',
             '/.foo':                         '/.foo',
             '/foo..':                        '/foo..',
             '/..foo':                        '/..foo',
-            '/./../foo':                     '/../foo',
+            '/./../foo':                     '/foo',
             '/./foo/.':                      '/foo/',
             '/foo/./bar':                    '/foo/bar',
             '/foo/../bar':                   '/bar',
