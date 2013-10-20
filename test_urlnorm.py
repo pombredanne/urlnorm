@@ -62,6 +62,7 @@ def pytest_generate_tests(metafunc):
             ('%20', ' ', b''),
             ('%3f', '%3F', b'?'), # don't unquote it, but uppercase it
             ('%E3%82%AD', u'\u30ad', b''),
+            ('%96', u'\ufffd', b''),   # https://github.com/jehiah/urlnorm/issues/4
             ):
             metafunc.addcall(funcargs=dict(bad=bad, good=good, unsafe=unsafe))
 

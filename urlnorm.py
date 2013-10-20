@@ -169,7 +169,7 @@ def unquote_safe(s, unsafe_list):
             # note: i'm not sure what this does
             res[i] = unichr(int(item[:2], 16)) + item[2:]
     o = b"".join(res)
-    return _unicode(o)
+    return _unicode(o, errors='replace')
 
 def norm(url):
     """given a string URL, return its normalized/unicode form"""
@@ -268,8 +268,8 @@ def _utf8(value):
     return value
 
 
-def _unicode(value):
+def _unicode(value, errors='strict'):
     if isinstance(value, binary_type):
-        return value.decode("utf-8")
+        return value.decode("utf-8", errors=errors)
     assert isinstance(value, text_type)
     return value
