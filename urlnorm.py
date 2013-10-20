@@ -201,6 +201,8 @@ def norm_path(scheme, path):
         while 1:
             path = _collapse.sub('/', path, 1)
             if last_path == path:
+                # 'http://example.com/../foo' should normalize to 'http://example.com/foo'
+                path = re.sub('^/\.\./', '/', path)
                 break
             last_path = path
     path = unquote_path(path)
