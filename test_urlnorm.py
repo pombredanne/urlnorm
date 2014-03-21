@@ -1,6 +1,7 @@
 """
 this is a py.test test file
 """
+from __future__ import print_function
 import urlnorm
 from urlnorm import _unicode
 
@@ -20,28 +21,28 @@ def pytest_generate_tests(metafunc):
             'http://USER:pass@www.Example.COM/foo/bar': 'http://USER:pass@www.example.com/foo/bar',
             'http://www.example.com./':      'http://www.example.com/',
             'http://test.example/?a=%26&b=1': 'http://test.example/?a=%26&b=1', # should not un-encode the & that is part of a parameter value
-            'http://test.example/?a=%e3%82%82%26': 'http://test.example/?a=\xe3\x82\x82%26'.decode('utf8'), # should return a unicode character
+            'http://test.example/?a=%e3%82%82%26': b'http://test.example/?a=\xe3\x82\x82%26'.decode('utf8'), # should return a unicode character
             # note: this breaks the internet for parameters that are positional (stupid nextel) and/or don't have an = sign
             # 'http://test.example/?a=1&b=2&a=3': 'http://test.example/?a=1&a=3&b=2', # should be in sorted/grouped order
-            
+
             # 'http://s.xn--q-bga.de/':       'http://s.q\xc3\xa9.de/'.decode('utf8'), # should be in idna format
             'http://test.example/?':        'http://test.example/', # no trailing ?
             'http://test.example?':       'http://test.example/', # with trailing /
             'http://a.COM/path/?b&a' : 'http://a.com/path/?b&a',
             # test utf8 and unicode
-            u'http://XBLA\u306eXbox.com': 'http://xbla\xe3\x81\xaexbox.com/'.decode('utf8'),
-            u'http://XBLA\u306eXbox.com'.encode('utf8'): 'http://xbla\xe3\x81\xaexbox.com/'.decode('utf8'),
-            u'http://XBLA\u306eXbox.com': 'http://xbla\xe3\x81\xaexbox.com/'.decode('utf8'),
+            u'http://XBLA\u306eXbox.com': b'http://xbla\xe3\x81\xaexbox.com/'.decode('utf8'),
+            u'http://XBLA\u306eXbox.com'.encode('utf8'): b'http://xbla\xe3\x81\xaexbox.com/'.decode('utf8'),
+            u'http://XBLA\u306eXbox.com': b'http://xbla\xe3\x81\xaexbox.com/'.decode('utf8'),
             # test idna + utf8 domain
             # u'http://xn--q-bga.XBLA\u306eXbox.com'.encode('utf8'): 'http://q\xc3\xa9.xbla\xe3\x81\xaexbox.com'.decode('utf8'),
-            'http://ja.wikipedia.org/wiki/%E3%82%AD%E3%83%A3%E3%82%BF%E3%83%94%E3%83%A9%E3%83%BC%E3%82%B8%E3%83%A3%E3%83%91%E3%83%B3': 'http://ja.wikipedia.org/wiki/\xe3\x82\xad\xe3\x83\xa3\xe3\x82\xbf\xe3\x83\x94\xe3\x83\xa9\xe3\x83\xbc\xe3\x82\xb8\xe3\x83\xa3\xe3\x83\x91\xe3\x83\xb3'.decode('utf8'),
+            'http://ja.wikipedia.org/wiki/%E3%82%AD%E3%83%A3%E3%82%BF%E3%83%94%E3%83%A9%E3%83%BC%E3%82%B8%E3%83%A3%E3%83%91%E3%83%B3': b'http://ja.wikipedia.org/wiki/\xe3\x82\xad\xe3\x83\xa3\xe3\x82\xbf\xe3\x83\x94\xe3\x83\xa9\xe3\x83\xbc\xe3\x82\xb8\xe3\x83\xa3\xe3\x83\x91\xe3\x83\xb3'.decode('utf8'),
             'http://test.example/\xe3\x82\xad': 'http://test.example/\xe3\x82\xad',
-            
+
             # check that %23 (#) is not escaped where it shouldn't be
             'http://test.example/?p=%23val#test-%23-val%25': 'http://test.example/?p=%23val#test-%23-val%25',
             # check that %20 or %25 is not unescaped to ' ' or %
             'http://test.example/%25/?p=%20val%20%25' : 'http://test.example/%25/?p=%20val%20%25',
-            "http://test.domain/I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%EF%BF%BDliz%C3%A6ti%C3%B8n" : "http://test.domain/I\xc3\xb1t\xc3\xabrn\xc3\xa2ti\xc3\xb4n\xef\xbf\xbdliz\xc3\xa6ti\xc3\xb8n",
+            "http://test.domain/I%C3%B1t%C3%ABrn%C3%A2ti%C3%B4n%EF%BF%BDliz%C3%A6ti%C3%B8n" : b"http://test.domain/I\xc3\xb1t\xc3\xabrn\xc3\xa2ti\xc3\xb4n\xef\xbf\xbdliz\xc3\xa6ti\xc3\xb8n".decode('utf8'),
             # check that spaces are collated to '+'
             "http://test.example/path/with a%20space+/" : "http://test.example/path/with%20a%20space+/",
             "http://[2001:db8:1f70::999:de8:7648:6e8]/test" : "http://[2001:db8:1f70::999:de8:7648:6e8]/test", #ipv6 address
@@ -52,18 +53,23 @@ def pytest_generate_tests(metafunc):
             # python 2.5 urlparse doesn't handle unknown protocols, so skipping this for now
             #"itms://itunes.apple.com/us/app/touch-pets-cats/id379475816?mt=8#23161525,,1293732683083,260430,tw" : "itms://itunes.apple.com/us/app/touch-pets-cats/id379475816?mt=8#23161525,,1293732683083,260430,tw", #can handle itms://
 
+            #'http://example.com/../foo' should normalize to 'http://example.com/foo'
+            "http://example.com/../foo": "http://example.com/foo",
+            "http://example.com//foo/../../bar": "http://example.com/bar",
+            "http://example.com/../foo/../bar/../baz": "http://example.com/baz",
         }
         for bad, good in tests.items():
             metafunc.addcall(funcargs=dict(bad=bad, good=good))
-    
+
     elif metafunc.function == test_unquote:
         for bad, good, unsafe in (
-            ('%20', ' ', ''),
-            ('%3f', '%3F', '?'), # don't unquote it, but uppercase it
-            ('%E3%82%AD', u'\u30ad', ''),
+            ('%20', ' ', b''),
+            ('%3f', '%3F', b'?'), # don't unquote it, but uppercase it
+            ('%E3%82%AD', u'\u30ad', b''),
+            ('%96', u'\ufffd', b''),   # https://github.com/jehiah/urlnorm/issues/4
             ):
             metafunc.addcall(funcargs=dict(bad=bad, good=good, unsafe=unsafe))
-    
+
     elif metafunc.function in [test_invalid_urls]:
         for url in [
             'http://http://www.exemple.com/', # invalid domain
@@ -83,15 +89,15 @@ def pytest_generate_tests(metafunc):
             '/foo/bar/../..':                '/',
             '/foo/bar/../../':               '/',
             '/foo/bar/../../baz':            '/baz',
-            '/foo/bar/../../../baz':         '/../baz',
+            '/foo/bar/../../../baz':         '/baz',
             '/foo/bar/../../../../baz':      '/baz',
             '/./foo':                        '/foo',
-            '/../foo':                       '/../foo',
+            '/../foo':                       '/foo',
             '/foo.':                         '/foo.',
             '/.foo':                         '/.foo',
             '/foo..':                        '/foo..',
             '/..foo':                        '/..foo',
-            '/./../foo':                     '/../foo',
+            '/./../foo':                     '/foo',
             '/./foo/.':                      '/foo/',
             '/foo/./bar':                    '/foo/bar',
             '/foo/../bar':                   '/bar',
@@ -104,7 +110,7 @@ def pytest_generate_tests(metafunc):
 def test_invalid_urls(url):
     try:
         output = urlnorm.norm(url)
-        print '%r' % output
+        print('%r' % output)
     except urlnorm.InvalidUrl:
         return
     assert 1 == 0, "this should have raised an InvalidUrl exception"
